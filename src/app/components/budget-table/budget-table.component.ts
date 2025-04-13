@@ -75,7 +75,6 @@ export class BudgetTableComponent implements AfterViewInit {
       }
     }
 
-
     return totals;
   })
 
@@ -129,26 +128,8 @@ export class BudgetTableComponent implements AfterViewInit {
     return results;
   })
 
-  public categoryTypes = signal<ICategoryType[]>([
-    {
-      id: uuid(),
-      category_type: 'Income',
-      categories: signal<Array<WritableSignal<ICategoryParent>>>([]),
-      category_parent_label_total: 'Total Income',
-    },
-    {
-      id: uuid(),
-      category_type: 'Expenses',
-      categories: signal<Array<WritableSignal<ICategoryParent>>>([]),
-      category_parent_label_total: 'Total Expenses',
-    }
-  ])
-
-  public contextMenu = signal<IContextMenu>({
-    show: false,
-    x: 0,
-    y: 0
-  });
+  public categoryTypes = signal<ICategoryType[]>(this.initCategory())
+  public contextMenu = signal<IContextMenu>({ show: false, x: 0, y: 0 });
 
   constructor() { }
 
@@ -268,11 +249,28 @@ export class BudgetTableComponent implements AfterViewInit {
 
   public handlerChangeDatePicker(range: IDateRangePicker): void {
     this.dateRange.set(range);
-    console.log('New range selected:', range);
+    this.categoryTypes.set(this.initCategory());
   }
 
   public formatDate(date: Date): string {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  private initCategory(): ICategoryType[] {
+    return [
+      {
+        id: uuid(),
+        category_type: 'Income',
+        categories: signal<Array<WritableSignal<ICategoryParent>>>([]),
+        category_parent_label_total: 'Total Income',
+      },
+      {
+        id: uuid(),
+        category_type: 'Expenses',
+        categories: signal<Array<WritableSignal<ICategoryParent>>>([]),
+        category_parent_label_total: 'Total Expenses',
+      }
+    ]
   }
 
   ngAfterViewInit(): void {
