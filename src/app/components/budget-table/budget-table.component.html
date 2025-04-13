@@ -1,0 +1,202 @@
+<div>
+  <div class="my-2">
+    <app-date-range-picker
+      [dateRange]="dateRange()"
+      (selectedDateRange)="handlerChangeDatePicker($event)" />
+  </div>
+  <table class="w-full" TableNavigationDirective>
+    <thead>
+      <tr class="bg-gray-50">
+        <th class="border border-gray-300 p-2 text-left font-medium min-w-[300px]">{{ titleDateRange() }}</th>
+        @for (month of months(); track month) {
+          <th class="border border-gray-300 p-2 text-right font-medium text-right">{{ month.origin | date:'MMM yyyy' }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (cateType of categoryTypes(); track cateType.id) {
+        @if ($index !== 0) {
+          <tr>
+            <td class="border border-gray-300 font-medium" colspan="100%">
+              <input type="text" readonly
+                class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right" />
+            </td>
+          </tr>
+        }
+        <tr class="bg-gray-100">
+          <td class="border border-gray-300 font-medium" colspan="100%">
+            <input type="text" readonly [ngModel]="cateType.category_type"
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+          </td>
+        </tr>
+        @for (cateParent of cateType.categories(); track cateParent().id) {
+          <tr class="bg-white">
+            <td class="border border-gray-300">
+              <input type="text" class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition font-bold"
+                [ngModel]="cateParent().category_parent_name"
+                [attr.category-parent-id]="cateParent().id" />
+            </td>
+            @for (month of months(); track month; let colIndex = $index) {
+              <td class="border border-gray-300">
+                <input type="text" readonly
+                  class="text-right p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+              </td>
+            }
+          </tr>
+          @for (cateChild of cateParent().category_children(); track cateChild().id) {
+            <tr class="bg-white">
+              <td class="border border-gray-300">
+                <input type="text"
+                  class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition"
+                  [ngModel]="cateChild().category_child_name"
+                  [attr.category-child-id]="cateChild().id" />
+              </td>
+              @for (cateBudget of cateChild().category_budgets(); track cateBudget().id; let colIndex = $index) {
+                <td class="border border-gray-300">
+                  <input type="number"
+                    class="text-right p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition"
+                    [ngModel]="cateBudget().budget_amount"
+                    (contextmenu)="handlerOpenContextMenu($event, cateBudget, cateChild, cateParent)"
+                    (ngModelChange)="handlerBudgetChange($event, cateBudget)"
+                    [attr.category-budget-id]="cateBudget().id" />
+                </td>
+              }
+            </tr>
+          }
+          @if (cateType.categories().length !== 0) {
+            <tr>
+              <td
+                class="border border-gray-300"
+                colspan="100%">
+                <input type="text"
+                  id="add-new-cate-child"
+                  [attr.add-new-cate-child]="cateParent().id"
+                  class="p-2 w-full outline-none text-gray-500 cursor-pointer hover:text-gray-700 hover:bg-gray-50 transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition"
+                  [placeholder]="'Add New ' + cateParent().category_parent_name + ' Category...'"
+                  (keydown)="handlerAddCategoryChild($event, cateParent())" />
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 font-medium">
+                <input type="text" readonly [ngModel]="'Subs Total'"
+                  class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+              </td>
+              @for (cateSubTotal of categorySubsTotal(); track cateSubTotal) {
+                @if (cateSubTotal.id === cateParent().id) {
+                  @for (subTotal of cateSubTotal.category_subs_total; track subTotal) {
+                    <td class="border border-gray-300 font-medium">
+                      <input type="text" readonly
+                        class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right"
+                        [ngModel]="subTotal.budget_total" />
+                    </td>
+                  }
+                }
+              }
+            </tr>
+            <tr>
+              <td class="border border-gray-300 font-medium" colspan="100%">
+                <input type="text" readonly
+                  class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right" />
+              </td>
+            </tr>
+          }
+        }
+        <tr>
+          <td
+            class="border border-gray-300"
+            colspan="100%">
+            <input type="text"
+              id="add-new-cate-parent"
+              [attr.add-new-cate-parent]="cateType.id"
+              class="p-2 w-full outline-none text-gray-500 cursor-pointer hover:text-gray-700 hover:bg-gray-50 transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition"
+              placeholder="Add New Parent Category..."
+              (keydown)="handlerAddCategoryParent($event, cateType)" />
+          </td>
+        </tr>
+        <tr>
+          <td class="border border-gray-300 font-medium" colspan="100%">
+            <input type="text" readonly
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right" />
+          </td>
+        </tr>
+        <tr>
+          <td class="border border-gray-300 font-medium">
+            <input type="text" readonly [ngModel]="cateType.category_parent_label_total"
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+          </td>
+          @for (month of months(); track month) {
+            @for (totals of categoryTypeTotal(); track totals) {
+              @if (totals.categoryType === cateType.category_type) {
+                <td class="border border-gray-300 font-medium">
+                  <input type="text" readonly
+                    class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right"
+                    [ngModel]="totals.categoryTotal[month.index]" />
+                </td>
+              }
+            }
+          }
+        </tr>
+      }
+      <!-- Profile / Loss -->
+      <tr>
+        <td class="border border-gray-300 font-medium">
+          <input type="text" readonly [ngModel]="'Profit / Loss'"
+            class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+        </td>
+        @for (month of months(); track month) {
+          <td class="border border-gray-300 font-medium">
+            <input type="text" readonly
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right"
+              [ngModel]="categoryProfitLost()[month.index]" />
+          </td>
+        }
+      </tr>
+      <!-- Opening Balance -->
+      <tr>
+        <td class="border border-gray-300 font-medium">
+          <input type="text" readonly [ngModel]="'Opening Balance'"
+            class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+        </td>
+        @for (month of months(); track month) {
+          <td class="border border-gray-300 font-medium">
+            <input type="text" readonly
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right"
+              [ngModel]="balanceBudget().opening_balance[month.index] || 0" />
+          </td>
+        }
+        <!-- Closing Balance -->
+      <tr>
+        <td class="border border-gray-300 font-medium">
+          <input type="text" readonly [ngModel]="'Closing Balance'"
+            class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition" />
+        </td>
+        @for (month of months(); track month) {
+          <td class="border border-gray-300 font-medium">
+            <input type="text" readonly
+              class="p-2 w-full outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-300 transition text-right"
+              [ngModel]="balanceBudget().closing_balance[month.index] || 0" />
+          </td>
+        }
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+@if (contextMenu().show) {
+  <div
+    class="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl w-48 animate-fade-in"
+    [style.left.px]="contextMenu().x"
+    [style.top.px]="contextMenu().y">
+    <button
+      (click)="handlerApplyToAll()"
+      class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors rounded-t-lg">
+      Apply to all months
+    </button>
+    <button
+      (click)="handlerDeleteRow()"
+      class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
+      Delete row
+    </button>
+  </div>
+}
